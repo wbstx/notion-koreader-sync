@@ -24,5 +24,26 @@ if __name__ == "__main__":
             },
         }
     )
-    for block in iterate_paginated_api(notion.databases.query, database_id=DATABASE_ID):
-        print(block)
+
+    # print(my_page)
+
+    title = [{"text": {"content": "title_name"}}]
+    author = [{"text": {"content": "author_name"}}]
+
+    # https://developers.notion.com/reference/update-a-database
+    status = notion.pages.create(
+        **{
+            "parent": {
+                "database_id": DATABASE_ID,
+            },
+            "properties": {
+                "Name": {"title": title},
+                "Author": {"rich_text": author}
+            },
+        }
+    )
+
+    print(status)
+
+    # for block in iterate_paginated_api(notion.databases.query, database_id=DATABASE_ID):
+    #     print(block)
