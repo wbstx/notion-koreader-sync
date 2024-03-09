@@ -6,7 +6,7 @@ import os
 import logging
 import re
 
-class NotionDatabaseClient:
+class NotionBookClient:
     def __init__(self, database_id, API_KEY):
         self.database_id = database_id
         self.notion = notion_client.Client(auth=API_KEY)
@@ -15,8 +15,7 @@ class NotionDatabaseClient:
         page_id = notion_book_page["results"][0]["id"]
         book_title = notion_book_page["results"][0]["properties"]["Title"]["title"][0]["text"]["content"]
         author_name = notion_book_page["results"][0]["properties"]["Author"]["rich_text"][0]["text"]["content"]
-        read_time = notion_book_page["results"][0]["properties"]["Read Time"]["rich_text"][0]["text"]["content"]
-
+        read_time = notion_book_page["results"][0]["properties"]["Read Seconds"]["number"]
         return {
             "page_id": page_id,
             "book_title": book_title,
@@ -73,12 +72,11 @@ class NotionDatabaseClient:
     # https://developers.notion.com/reference/patch-page
     def update_book(self, page_id, book_name, author_name, read_time):
         try:
-            read_time = [{"text": {"content": read_time}}]
             self.notion.pages.update(
                 **{
                     "page_id": page_id,
                     "properties": {
-                        "Read Time": {"rich_text": read_time},
+                        "Read Seconds": {"number": read_time},
                     },
                 }
             )
@@ -90,9 +88,8 @@ class NotionDatabaseClient:
     # https://developers.notion.com/reference/update-a-database
     def add_book(self, book_name, author_name, read_time):
         try:
-            titles = [{"text": {"content": book_name}}]
-            authors = [{"text": {"content": author_name}}]
-            read_time = [{"text": {"content": read_time}}]
+            title = [{"text": {"content": book_name}}]
+            author = [{"text": {"content": author_name}}]
 
             my_page = self.notion.pages.create(
                 **{
@@ -100,12 +97,13 @@ class NotionDatabaseClient:
                         "database_id": self.database_id,
                     },
                     "properties": {
-                        "Title": {"title": titles},
-                        "Author": {"rich_text": authors},
-                        "Read Time": {"rich_text": read_time},
+                        "Title": {"title": title},
+                        "Author": {"rich_text": author},
+                        "Read Seconds": {"number": read_time},
                     },
                 }
             )
             print(book_name, "by", author_name, "successfully added to notion")
-        except:
+        except KeyError as e:
             print("Error when adding book to notion:", book_name, "by", author_name)
+            print(e)
