@@ -5,6 +5,10 @@ from notion_client.helpers import iterate_paginated_api
 import os
 import logging
 import re
+import datetime
+
+# Notion API format cheatsheet
+# https://developers.notion.com/reference/property-value-object#status-property-values
 
 class NotionBookClient:
     def __init__(self, database_id, API_KEY):
@@ -95,6 +99,15 @@ class NotionBookClient:
             author = [{"text": {"content": book.author_name}}]
             read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
 
+            status = "Reading" # Defaultly reading
+
+            progress = round(book.read_pages / book.total_pages, 2)
+            # If progress > 90% and last read time over 48 hours, this book is treated as comleted
+            if progress > 0.90 and datetime.datetime.now() - book.start_read_time > datetime.timedelta(hours=48):
+                progress = 1.00
+                status = "Completed"
+
+
             my_page = self.notion.pages.create(
                 **{
                     "parent": {
@@ -105,7 +118,8 @@ class NotionBookClient:
                         "Author": {"rich_text": author},
                         "Read Seconds": {"number": book.read_time},
                         "Read Date": {"date": read_date},
-                        "Progress": {"number": round(book.read_pages / book.total_pages, 2)}
+                        "Progress": {"number": progress},
+                        "Status": {"status": {"name": status}},
                     },
                 }
             )
