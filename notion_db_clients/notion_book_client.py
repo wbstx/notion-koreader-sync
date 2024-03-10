@@ -16,10 +16,10 @@ class NotionBookClient:
         self.notion = notion_client.Client(auth=API_KEY)
     
     def parse_book_page(self, notion_book_page):
-        page_id = notion_book_page["results"][0]["id"]
-        book_title = notion_book_page["results"][0]["properties"]["Title"]["title"][0]["text"]["content"]
-        author_name = notion_book_page["results"][0]["properties"]["Author"]["rich_text"][0]["text"]["content"]
-        read_time = notion_book_page["results"][0]["properties"]["Read Seconds"]["number"]
+        page_id = notion_book_page["id"]
+        book_title = notion_book_page["properties"]["Title"]["title"][0]["text"]["content"]
+        author_name = notion_book_page["properties"]["Author"]["rich_text"][0]["text"]["content"]
+        read_time = notion_book_page["properties"]["Read Seconds"]["number"]
         return {
             "page_id": page_id,
             "book_title": book_title,
@@ -42,7 +42,7 @@ class NotionBookClient:
                 }
             )
             if len(book_page["results"]) != 0:
-                return self.parse_book_page(book_page)
+                return self.parse_book_page(book_page["results"][0])
             else:
                 return None
         else:
@@ -69,7 +69,7 @@ class NotionBookClient:
             )
 
             if len(book_page["results"]) != 0:
-                return self.parse_book_page(book_page)
+                return self.parse_book_page(book_page["results"][0])
             else:
                 return None
 

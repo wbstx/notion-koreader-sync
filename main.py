@@ -35,7 +35,7 @@ def export_koreader_books_to_notion(kos, nob):
                 koreader_notion_map[book.ko_id] = page_id
                 # Update read time in notion
                 if queried_book["read_time"] != book.read_time:
-                    nob.update_book(book)
+                    nob.update_book(page_id, book)
                 else:
                     print(f"{book.book_name} by {book.author_name} not modified")
 
@@ -45,18 +45,24 @@ def export_koreader_books_to_notion(kos, nob):
 
     return koreader_notion_map
 
-def export_koreader_statistics_to_notion(kos, nod, koreader_notion_map):
-    earliest_read_day = kos.day_statistics[min(kos.day_statistics.keys())].day
+def export_koreader_statistics_to_notion(kos, nod, nob, koreader_notion_map):
+    only_update_from_last_day_to_today = True
+
+    start_day = kos.day_statistics[min(kos.day_statistics.keys())].day
+
+    if only_update_from_last_day_to_today:
+        start_day = datetime.strptime(nod.get_last_day(), '%Y-%m-%d')
     today = datetime.datetime.today()
 
-    delta = datetime.timedelta(days=1)
-
-    for i in range((today - earliest_read_day).days + 1):
-        day = earliest_read_day + i*delta
+    for i in range((today - start_day).days + 1):
+        day = start_day + i*datetime.timedelta(days=1)
         day_stat = kos.day_statistics[day.strftime('%Y-%m-%d')]
-        # print(day_stat.day, day_stat.day_read_time, day_stat.read_books)
 
-        nod.add_day(day_stat, koreader_notion_map)
+        page_id = nod.get_day(day.strftime('%Y-%m-%d'))
+        if page_id is None:
+            nod.add_day(day_stat, nob, koreader_notion_map)
+        else:
+            nod.update_day(page_id, day_stat, koreader_notion_map)
 
     # for day, day_stat in kos.day_statistics.items():
 
@@ -104,10 +110,8 @@ if __name__ == "__main__":
     koreader_notion_mapping = export_koreader_books_to_notion(kos, nob)
 
     nod = NotionDiaryClient(DIARY_ID, API_KEY)
-    export_koreader_statistics_to_notion(kos, nod, koreader_notion_mapping)
+    export_koreader_statistics_to_notion(kos, nod, nob, koreader_notion_mapping)
 
-    
-
-    # notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
-    # notion_statistics_db.get_total_statistics()
-    # notion_statistics_db.update_total(nob)
+    notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
+    notion_statistics_db.get_total_statistics()
+    notion_statistics_db.update_total(nob)
