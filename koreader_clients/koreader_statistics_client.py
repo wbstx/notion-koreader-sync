@@ -20,6 +20,9 @@ class KoreaderBook:
     last_read_time: datetime = datetime(1, 1, 1)
     current_page: int = 0
 
+    last_progress: float = 0.0 # total pages varies if the document format is modifiec, we save progress only
+    max_progress: float = 0.0
+
 class DayStat:
     def __init__(self, day):
         self.day = day
@@ -60,34 +63,39 @@ class KoreaderStatisticsClient:
             return len(self.books)
         
     def load_time(self):
-        sql = 'select id_book, start_time, duration from page_stat_data'
+        sql = 'select id_book, start_time, duration, page, total_pages from page_stat_data'
         self.cur.execute(sql) 
         time_all = self.cur.fetchall() 
         for p in time_all:
-            timestamp = p[1]
+            book_id, timestamp, duration, current_page, total_pages = p[0], p[1], p[2], p[3], p[4]
             timestamp = datetime.fromtimestamp(timestamp)
 
             # Calculate Day statistics
             day_key = timestamp.strftime('%Y-%m-%d')
             if day_key not in self.day_statistics.keys():
                 self.day_statistics[day_key] = DayStat(day_key)
-            self.day_statistics[day_key].update_day_stat(p[0], timestamp.hour, p[2])
+            self.day_statistics[day_key].update_day_stat(book_id, timestamp.hour, duration)
 
             # Count start/time for each book
-            if self.books[p[0]].start_read_time > timestamp:
-                self.books[p[0]].start_read_time = timestamp
+            if self.books[book_id].start_read_time > timestamp:
+                self.books[book_id].start_read_time = timestamp
 
-            if self.books[p[0]].last_read_time < timestamp:
-                self.books[p[0]].last_read_time = timestamp
+            if self.books[book_id].last_read_time < timestamp:
+                self.books[book_id].last_read_time = timestamp
+
+            # # Calc progress
+            # self.books[book_id].last_progress = progress
+            # if self.books[book_id].max_progress < progress:
+            #     self.books[book_id].max_progress = progress
 
         for day in self.day_statistics.values():
             book_str = ""
             for book_id in day.read_books:
                 book_str += f'{self.books[book_id].book_name} '
-            print(day.day, ": ", seconds_to_hours_format(day.day_read_time), book_str)
+            # print(day.day, ": ", seconds_to_hours_format(day.day_read_time), book_str)
 
         for b in self.books.values():
-            print(f'Book {b.id_ko}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}')
+            print(f'Book {b.id_ko}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')
 
     def destroy_sql_cursor(self):
         self.cur.close() 

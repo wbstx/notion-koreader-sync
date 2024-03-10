@@ -70,26 +70,30 @@ class NotionBookClient:
                 return None
 
     # https://developers.notion.com/reference/patch-page
-    def update_book(self, page_id, book_name, author_name, read_time):
+    def update_book(self, page_id, book):
         try:
+            read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
             self.notion.pages.update(
                 **{
                     "page_id": page_id,
                     "properties": {
-                        "Read Seconds": {"number": read_time},
+                        "Read Seconds": {"number": book.read_time},
+                        "Read Date": {"date": read_date},
+                        "Progress": {"number": round(book.read_pages / book.total_pages, 2)}
                     },
                 }
             )
-            print(book_name, "successfully updated in notion")
+            print(book.book_name, "successfully updated in notion")
         except KeyError as e:
             logging.error(e)
-            print("Error when updating", book_name, "by", author_name, "in notion")
+            print("Error when updating", book.book_name, "by", book.author_name, "in notion")
 
     # https://developers.notion.com/reference/update-a-database
-    def add_book(self, book_name, author_name, read_time):
+    def add_book(self, book):
         try:
-            title = [{"text": {"content": book_name}}]
-            author = [{"text": {"content": author_name}}]
+            title = [{"text": {"content": book.book_name}}]
+            author = [{"text": {"content": book.author_name}}]
+            read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
 
             my_page = self.notion.pages.create(
                 **{
@@ -99,11 +103,13 @@ class NotionBookClient:
                     "properties": {
                         "Title": {"title": title},
                         "Author": {"rich_text": author},
-                        "Read Seconds": {"number": read_time},
+                        "Read Seconds": {"number": book.read_time},
+                        "Read Date": {"date": read_date},
+                        "Progress": {"number": round(book.read_pages / book.total_pages, 2)}
                     },
                 }
             )
-            print(book_name, "by", author_name, "successfully added to notion")
+            print(book.book_name, "by", book.author_name, "successfully added to notion")
         except KeyError as e:
-            print("Error when adding book to notion:", book_name, "by", author_name)
+            print("Error when adding book to notion:", book.book_name, "by", book.author_name)
             print(e)

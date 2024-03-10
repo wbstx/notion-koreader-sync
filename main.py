@@ -12,24 +12,22 @@ from utils.bookinfo_format import author_name_format, seconds_to_hours_format
 import cv2
 from pathlib import Path
 
-def export_koreader_to_notion(kos, nob):
-    for i in range(kos.num_of_books):
-        book = kos.books[i]
+def export_koreader_books_to_notion(kos, nob):
+    for book in kos.books.values():
         book_name, author_name, read_time = book.book_name, book.author_name, book.read_time
-        author_name = author_name_format(author_name)
+        book.author_name = author_name_format(book.author_name)
 
         try:
             # Query book in notion database to check if it already exists or needs update 
-            queried_book = nob.get_book(book_name, author_name)
+            queried_book = nob.get_book(book.book_name, book.author_name)
             # Add a new book in the notion db
             if queried_book is None: 
-                nob.add_book(book_name, author_name, read_time)
+                nob.add_book(book)
             else:
                 page_id = queried_book["page_id"]
-
                 # Update read time in notion
                 if queried_book["read_time"] != read_time:
-                    nob.update_book(page_id, book_name, author_name, read_time)
+                    nob.update_book(book)
                 else:
                     print(f"{book_name} by {author_name} not modified")
 
@@ -76,9 +74,9 @@ if __name__ == "__main__":
     # cac.destroy_sql_cursor()
 
     # # initialize notion book database client
-    # nob = NotionBookClient(BOOK_DATABASE_ID, API_KEY)
-    # export_koreader_to_notion(kos, nob)
+    nob = NotionBookClient(BOOK_DATABASE_ID, API_KEY)
+    export_koreader_books_to_notion(kos, nob)
 
-    # notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
-    # notion_statistics_db.get_total_statistics()
-    # notion_statistics_db.update_total(nob)
+    notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
+    notion_statistics_db.get_total_statistics()
+    notion_statistics_db.update_total(nob)
