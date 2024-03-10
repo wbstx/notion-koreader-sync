@@ -2,9 +2,9 @@ import requests
 import json
 import logging
 import notion_client
-from notion_book_client import NotionBookClient
-from notion_statistics_client import NotionStatisticsClient
-from koreader_statistics_client import KoreaderStatisticsClient
+from notion_db_clients.notion_book_client import NotionBookClient
+from notion_db_clients.notion_statistics_client import NotionStatisticsClient
+from koreader_clients.koreader_statistics_client import KoreaderStatisticsClient
 from calibre_client import CalibreClient
 import os
 import re
@@ -14,9 +14,9 @@ from pathlib import Path
 
 def export_koreader_to_notion(kos, nob):
     for i in range(kos.num_of_books):
-        book_name, author_name, read_time = kos.book_names[i], kos.author_names[i], kos.read_times[i]
+        book = kos.books[i]
+        book_name, author_name, read_time = book.book_name, book.author_name, book.read_time
         author_name = author_name_format(author_name)
-        # read_time = seconds_to_hours_format(read_time)
 
         try:
             # Query book in notion database to check if it already exists or needs update 
@@ -43,7 +43,6 @@ if __name__ == "__main__":
     API_KEY = os.environ["NOTION_TOKEN"]
     BOOK_DATABASE_ID = "36c28ecfc10a46df9121466ec27874eb"
     STATISTICS_ID = "35c495aac5de41ecb2ecd7d83893f2f7"
-
     MAX_COVER_SIZE = 800
 
     # now = datetime.now()
@@ -54,6 +53,8 @@ if __name__ == "__main__":
 
     # Load koreader statistics dataset
     kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
+    kos.load_time()
+    kos.destroy_sql_cursor()
 
     # # Load calibre database for book cover
     # calibre_root_path = "F:\Calibre"
@@ -72,11 +73,11 @@ if __name__ == "__main__":
     #     img_path = os.path.join("covers", book_name + ".jpg").replace(":", "")
     #     cv2.imencode('.jpg', cover_img)[1].tofile(img_path)
     
-    # cac.destroy()
+    # cac.destroy_sql_cursor()
 
     # # initialize notion book database client
     # nob = NotionBookClient(BOOK_DATABASE_ID, API_KEY)
-    # # export_koreader_to_notion(kos, nob)
+    # export_koreader_to_notion(kos, nob)
 
     # notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
     # notion_statistics_db.get_total_statistics()

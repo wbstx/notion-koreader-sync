@@ -21,6 +21,6 @@ class CalibreClient:
             except Exception as e: 
                 print(e)
 
-    def destroy(self):
+    def destroy_sql_cursor(self):
         self.cur.close() 
         self.con.close()
