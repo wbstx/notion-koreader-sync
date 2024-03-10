@@ -1,20 +1,25 @@
 import requests
 import json
 import logging
+import os
+import re
+import cv2
+from pathlib import Path
+import datetime
+
 import notion_client
 from notion_db_clients.notion_book_client import NotionBookClient
 from notion_db_clients.notion_statistics_client import NotionStatisticsClient
+from notion_db_clients.notion_diary_client import NotionDiaryClient
 from koreader_clients.koreader_statistics_client import KoreaderStatisticsClient
 from calibre_client import CalibreClient
-import os
-import re
+
 from utils.bookinfo_format import author_name_format, seconds_to_hours_format
-import cv2
-from pathlib import Path
 
 def export_koreader_books_to_notion(kos, nob):
+    koreader_notion_map = {} # Mapping between koreader book_id and notion page_id
     for book in kos.books.values():
-        book_name, author_name, read_time = book.book_name, book.author_name, book.read_time
+        # book_name, author_name, read_time = book.book_name, book.author_name, book.read_time
         book.author_name = author_name_format(book.author_name)
 
         try:
@@ -22,32 +27,53 @@ def export_koreader_books_to_notion(kos, nob):
             queried_book = nob.get_book(book.book_name, book.author_name)
             # Add a new book in the notion db
             if queried_book is None: 
-                nob.add_book(book)
+                book_page = nob.add_book(book)
+                if book_page is not None:
+                    koreader_notion_map[book.ko_id] = book_page["page_id"]
             else:
                 page_id = queried_book["page_id"]
+                koreader_notion_map[book.ko_id] = page_id
                 # Update read time in notion
-                if queried_book["read_time"] != read_time:
+                if queried_book["read_time"] != book.read_time:
                     nob.update_book(book)
                 else:
-                    print(f"{book_name} by {author_name} not modified")
+                    print(f"{book.book_name} by {book.author_name} not modified")
 
         except notion_client.APIResponseError as error:
-            logging.error(f"Error when updating {book_name} by {author_name} to notion")
+            logging.error(f"Error when updating {book.book_name} by {book.author_name} to notion")
             logging.error(error)
+
+    return koreader_notion_map
+
+def export_koreader_statistics_to_notion(kos, nod, koreader_notion_map):
+    earliest_read_day = kos.day_statistics[min(kos.day_statistics.keys())].day
+    today = datetime.datetime.today()
+
+    delta = datetime.timedelta(days=1)
+
+    for i in range((today - earliest_read_day).days + 1):
+        day = earliest_read_day + i*delta
+        day_stat = kos.day_statistics[day.strftime('%Y-%m-%d')]
+        # print(day_stat.day, day_stat.day_read_time, day_stat.read_books)
+
+        nod.add_day(day_stat, koreader_notion_map)
+
+    # for day, day_stat in kos.day_statistics.items():
+
+        # book_str = ""
+        # for book_id in day_stat.read_books:
+        #     book_str += f'{kos.books[book_id].book_name} '
+        # print(day, ": ", day, seconds_to_hours_format(day_stat.day_read_time), book_str)
 
 if __name__ == "__main__":
 
-    # notion integration secret token, book dataset id
+    # notion integration secret token, dataset ids
     API_KEY = os.environ["NOTION_TOKEN"]
     BOOK_DATABASE_ID = "36c28ecfc10a46df9121466ec27874eb"
     STATISTICS_ID = "35c495aac5de41ecb2ecd7d83893f2f7"
-    MAX_COVER_SIZE = 800
+    DIARY_ID = "4c576409431948e29cbb75829ad836d6"
 
-    # now = datetime.now()
-    # year = now.year
-    # month = now.month
-
-    # print(year, month)
+    MAX_COVER_SIZE = 800 # Max resolution of cover images
 
     # Load koreader statistics dataset
     kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
@@ -75,8 +101,13 @@ if __name__ == "__main__":
 
     # # initialize notion book database client
     nob = NotionBookClient(BOOK_DATABASE_ID, API_KEY)
-    export_koreader_books_to_notion(kos, nob)
+    koreader_notion_mapping = export_koreader_books_to_notion(kos, nob)
 
-    notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
-    notion_statistics_db.get_total_statistics()
-    notion_statistics_db.update_total(nob)
+    nod = NotionDiaryClient(DIARY_ID, API_KEY)
+    export_koreader_statistics_to_notion(kos, nod, koreader_notion_mapping)
+
+    
+
+    # notion_statistics_db = NotionStatisticsClient(STATISTICS_ID, API_KEY)
+    # notion_statistics_db.get_total_statistics()
+    # notion_statistics_db.update_total(nob)

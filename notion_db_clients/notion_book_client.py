@@ -77,7 +77,7 @@ class NotionBookClient:
     def update_book(self, page_id, book):
         try:
             read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
-            self.notion.pages.update(
+            book_page = self.notion.pages.update(
                 **{
                     "page_id": page_id,
                     "properties": {
@@ -88,9 +88,11 @@ class NotionBookClient:
                 }
             )
             print(book.book_name, "successfully updated in notion")
+            return self.parse_book_page(book_page)
         except KeyError as e:
-            logging.error(e)
             print("Error when updating", book.book_name, "by", book.author_name, "in notion")
+            print(e)
+            return None
 
     # https://developers.notion.com/reference/update-a-database
     def add_book(self, book):
@@ -108,7 +110,7 @@ class NotionBookClient:
                 status = "Completed"
 
 
-            my_page = self.notion.pages.create(
+            book_page = self.notion.pages.create(
                 **{
                     "parent": {
                         "database_id": self.database_id,
@@ -124,6 +126,8 @@ class NotionBookClient:
                 }
             )
             print(book.book_name, "by", book.author_name, "successfully added to notion")
+            return self.parse_book_page(book_page)
         except KeyError as e:
             print("Error when adding book to notion:", book.book_name, "by", book.author_name)
             print(e)
+            return None

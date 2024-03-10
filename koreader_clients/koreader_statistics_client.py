@@ -8,7 +8,7 @@ from utils.bookinfo_format import seconds_to_hours_format
 
 @dataclass
 class KoreaderBook:
-    id_ko: int # unique id in koreader
+    ko_id: int # unique id in koreader
     book_name: str
     author_name: str
     total_pages: int
@@ -55,7 +55,7 @@ class KoreaderStatisticsClient:
             self.cur.execute(sql) 
             book_all = self.cur.fetchall() 
             for p in book_all:
-                self.books[p[0]] = KoreaderBook(id_ko=p[0], book_name=p[1], author_name=p[2], total_pages=p[3], \
+                self.books[p[0]] = KoreaderBook(ko_id=p[0], book_name=p[1], author_name=p[2], total_pages=p[3], \
                                                md5=p[4], read_time=p[5], read_pages=p[6])
         except Exception as e: 
             print(e)
@@ -73,7 +73,7 @@ class KoreaderStatisticsClient:
             # Calculate Day statistics
             day_key = timestamp.strftime('%Y-%m-%d')
             if day_key not in self.day_statistics.keys():
-                self.day_statistics[day_key] = DayStat(day_key)
+                self.day_statistics[day_key] = DayStat(timestamp.replace(hour=0, minute=0, second=0, microsecond=0))
             self.day_statistics[day_key].update_day_stat(book_id, timestamp.hour, duration)
 
             # Count start/time for each book
@@ -87,15 +87,9 @@ class KoreaderStatisticsClient:
             # self.books[book_id].last_progress = progress
             # if self.books[book_id].max_progress < progress:
             #     self.books[book_id].max_progress = progress
-
-        for day in self.day_statistics.values():
-            book_str = ""
-            for book_id in day.read_books:
-                book_str += f'{self.books[book_id].book_name} '
-            # print(day.day, ": ", seconds_to_hours_format(day.day_read_time), book_str)
-
-        for b in self.books.values():
-            print(f'Book {b.id_ko}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')
+                
+        # for b in self.books.values():
+        #     print(f'Book {b.ko_id}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')
 
     def destroy_sql_cursor(self):
         self.cur.close() 
