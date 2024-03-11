@@ -13,6 +13,7 @@ from notion_db_clients.notion_statistics_client import NotionStatisticsClient
 from notion_db_clients.notion_diary_client import NotionDiaryClient
 from koreader_clients.koreader_statistics_client import KoreaderStatisticsClient
 from calibre_client import CalibreClient
+from quotes_loader import QuotesLoader
 
 from utils.bookinfo_format import author_name_format, seconds_to_hours_format
 
@@ -34,7 +35,7 @@ def export_koreader_books_to_notion(kos, nob):
                 page_id = queried_book["page_id"]
                 koreader_notion_map[book.ko_id] = page_id
                 # Update read time in notion
-                if queried_book["read_time"] != book.read_time:
+                if queried_book["read_time"] != book.read_time and queried_book["status"] != "Completed":
                     nob.update_book(page_id, book)
                 else:
                     print(f"{book.book_name} by {book.author_name} not modified")
@@ -51,7 +52,7 @@ def export_koreader_statistics_to_notion(kos, nod, nob, koreader_notion_map):
     start_day = kos.day_statistics[min(kos.day_statistics.keys())].day
 
     if only_update_from_last_day_to_today:
-        start_day = datetime.strptime(nod.get_last_day(), '%Y-%m-%d')
+        start_day = datetime.datetime.strptime(nod.get_last_day(), '%Y-%m-%d')
     today = datetime.datetime.today()
 
     for i in range((today - start_day).days + 1):
@@ -81,11 +82,6 @@ if __name__ == "__main__":
 
     MAX_COVER_SIZE = 800 # Max resolution of cover images
 
-    # Load koreader statistics dataset
-    kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
-    kos.load_time()
-    kos.destroy_sql_cursor()
-
     # # Load calibre database for book cover
     # calibre_root_path = "F:\Calibre"
     # cac = CalibreClient(calibre_root_path)
@@ -104,6 +100,13 @@ if __name__ == "__main__":
     #     cv2.imencode('.jpg', cover_img)[1].tofile(img_path)
     
     # cac.destroy_sql_cursor()
+
+    # quo = QuotesLoader("F:\\books\\highlights")
+
+    # Load koreader statistics dataset
+    kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
+    kos.load_time()
+    kos.destroy_sql_cursor()
 
     # # initialize notion book database client
     nob = NotionBookClient(BOOK_DATABASE_ID, API_KEY)

@@ -20,8 +20,8 @@ class KoreaderBook:
     last_read_time: datetime = datetime(1, 1, 1)
     current_page: int = 0
 
-    last_progress: float = 0.0 # total pages varies if the document format is modifiec, we save progress only
-    max_progress: float = 0.0
+    read_pages_progress: float = 0.0 # progress based on read pages
+    last_progress: float = 0.0 # progress based on the current reading page
 
 class DayStat:
     def __init__(self, day):
@@ -57,6 +57,7 @@ class KoreaderStatisticsClient:
             for p in book_all:
                 self.books[p[0]] = KoreaderBook(ko_id=p[0], book_name=p[1], author_name=p[2], total_pages=p[3], \
                                                md5=p[4], read_time=p[5], read_pages=p[6])
+                self.books[p[0]].read_pages_progress = round(self.books[p[0]].read_pages / self.books[p[0]].total_pages, 2)
         except Exception as e: 
             print(e)
         finally: 
@@ -84,9 +85,7 @@ class KoreaderStatisticsClient:
                 self.books[book_id].last_read_time = timestamp
 
             # # Calc progress
-            # self.books[book_id].last_progress = progress
-            # if self.books[book_id].max_progress < progress:
-            #     self.books[book_id].max_progress = progress
+            self.books[book_id].last_progress = round(current_page / total_pages, 2)
                 
         # for b in self.books.values():
         #     print(f'Book {b.ko_id}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')

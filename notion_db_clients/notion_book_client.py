@@ -20,11 +20,13 @@ class NotionBookClient:
         book_title = notion_book_page["properties"]["Title"]["title"][0]["text"]["content"]
         author_name = notion_book_page["properties"]["Author"]["rich_text"][0]["text"]["content"]
         read_time = notion_book_page["properties"]["Read Seconds"]["number"]
+        status = notion_book_page["properties"]["Status"]["status"]["name"]
         return {
             "page_id": page_id,
             "book_title": book_title,
             "author_name": author_name,
-            "read_time": read_time
+            "read_time": read_time,
+            "status": status
         }
 
     # https://developers.notion.com/reference/post-database-query
