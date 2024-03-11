@@ -9,9 +9,9 @@ class CalibreClient:
         self.con = sqlite3.connect(self.database_path)
         self.cur = self.con.cursor()
 
-    def get_cover_path_by_book_name(self, book_name, author_name=None):
+    def get_cover_path_by_book_title(self, book_title, author_name=None):
         if author_name is None:
-            book_string = "\"" + str(book_name) + "\""
+            book_string = "\"" + str(book_title) + "\""
             bookid_sql = f'select id, path from books where (title like {book_string})'
             # TODO: Double check author name
             try: 

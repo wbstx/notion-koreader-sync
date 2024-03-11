@@ -30,7 +30,7 @@ class NotionBookClient:
         }
 
     # https://developers.notion.com/reference/post-database-query
-    def get_book(self, book_name, author_name=None):
+    def get_book(self, book_title, author_name=None):
         if author_name is None:
             book_page = self.notion.databases.query(
                 **{
@@ -38,7 +38,7 @@ class NotionBookClient:
                     "filter": {
                         "property": "Title",
                         "title": {
-                            "equals": book_name,
+                            "equals": book_title,
                         },
                     },
                 }
@@ -56,7 +56,7 @@ class NotionBookClient:
                             {
                                 "property": "Title",
                                 "title": {
-                                    "equals": book_name,
+                                    "equals": book_title,
                                 },
                             },
                             {
@@ -89,17 +89,17 @@ class NotionBookClient:
                     },
                 }
             )
-            print(book.book_name, "successfully updated in notion")
+            print(book.book_title, "successfully updated in notion")
             return self.parse_book_page(book_page)
         except KeyError as e:
-            print("Error when updating", book.book_name, "by", book.author_name, "in notion")
+            print("Error when updating", book.book_title, "by", book.author_name, "in notion")
             print(e)
             return None
 
     # https://developers.notion.com/reference/update-a-database
     def add_book(self, book):
         try:
-            title = [{"text": {"content": book.book_name}}]
+            title = [{"text": {"content": book.book_title}}]
             author = [{"text": {"content": book.author_name}}]
             read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
 
@@ -127,9 +127,9 @@ class NotionBookClient:
                     },
                 }
             )
-            print(book.book_name, "by", book.author_name, "successfully added to notion")
+            print(book.book_title, "by", book.author_name, "successfully added to notion")
             return self.parse_book_page(book_page)
         except KeyError as e:
-            print("Error when adding book to notion:", book.book_name, "by", book.author_name)
+            print("Error when adding book to notion:", book.book_title, "by", book.author_name)
             print(e)
             return None

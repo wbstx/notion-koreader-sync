@@ -9,7 +9,7 @@ from utils.bookinfo_format import seconds_to_hours_format
 @dataclass
 class KoreaderBook:
     ko_id: int # unique id in koreader
-    book_name: str
+    book_title: str
     author_name: str
     total_pages: int
     md5: str
@@ -55,7 +55,7 @@ class KoreaderStatisticsClient:
             self.cur.execute(sql) 
             book_all = self.cur.fetchall() 
             for p in book_all:
-                self.books[p[0]] = KoreaderBook(ko_id=p[0], book_name=p[1], author_name=p[2], total_pages=p[3], \
+                self.books[p[0]] = KoreaderBook(ko_id=p[0], book_title=p[1], author_name=p[2], total_pages=p[3], \
                                                md5=p[4], read_time=p[5], read_pages=p[6])
                 self.books[p[0]].read_pages_progress = round(self.books[p[0]].read_pages / self.books[p[0]].total_pages, 2)
         except Exception as e: 
@@ -88,7 +88,7 @@ class KoreaderStatisticsClient:
             self.books[book_id].last_progress = round(current_page / total_pages, 2)
                 
         # for b in self.books.values():
-        #     print(f'Book {b.ko_id}: {b.book_name} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')
+        #     print(f'Book {b.ko_id}: {b.book_title} ({b.author_name}), start from {b.start_read_time}, last read at {b.last_read_time}, progess: {"%.2f%%" % (b.read_pages / b.total_pages * 100)}')
 
     def destroy_sql_cursor(self):
         self.cur.close() 
