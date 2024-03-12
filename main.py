@@ -84,25 +84,6 @@ if __name__ == "__main__":
 
     MAX_COVER_SIZE = 800 # Max resolution of cover images
 
-    # # Load calibre database for book cover
-    # calibre_root_path = "F:\Calibre"
-    # cac = CalibreClient(calibre_root_path)
-
-    # # Collecting covers
-    # # Notion api does not allow to upload files, so we need to do it manually 
-    # for book_title in kos.book_titles:
-    #     print(book_title)
-    #     cover_path = cac.get_cover_path_by_book_title(book_title)
-    #     cover_img = cv2.imread(cover_path)
-    #     h, w = cover_img.shape[:2]
-    #     if max(w, h) > MAX_COVER_SIZE:
-    #         scale = MAX_COVER_SIZE / max(w, h)
-    #         cover_img = cv2.resize(cover_img, None, fx=scale, fy=scale)
-    #     img_path = os.path.join("covers", book_title + ".jpg").replace(":", "")
-    #     cv2.imencode('.jpg', cover_img)[1].tofile(img_path)
-    
-    # cac.destroy_sql_cursor()
-
     # Load koreader statistics dataset
     kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
     kos.load_time()
@@ -124,3 +105,23 @@ if __name__ == "__main__":
     # notion_statistics_db = NotionStatisticsClient(STATISTICS_DATABASE_ID, API_KEY)
     # notion_statistics_db.get_total_statistics()
     # notion_statistics_db.update_total(nob)
+
+    # # Load calibre database for book cover
+    # calibre_root_path = "F:\Calibre"
+    # cac = CalibreClient(calibre_root_path)
+
+    # # Collecting covers
+    # # Notion api does not allow to upload files, so we need to do it manually 
+    # for book in kos.books.values():
+    #     book_title = book.book_title
+    #     print(book_title)
+    #     cover_path = cac.get_cover_path_by_book_title(book_title)
+    #     cover_img = cv2.imread(cover_path)
+    #     h, w = cover_img.shape[:2]
+    #     if max(w, h) > MAX_COVER_SIZE:
+    #         scale = MAX_COVER_SIZE / max(w, h)
+    #         cover_img = cv2.resize(cover_img, None, fx=scale, fy=scale)
+    #     img_path = os.path.join("covers", book_title + ".jpg").replace(":", "")
+    #     cv2.imencode('.jpg', cover_img)[1].tofile(img_path)
+    
+    # cac.destroy_sql_cursor()

@@ -26,7 +26,7 @@ class QuotesLoader:
         self.json_files = glob.glob(os.path.join(self.quotes_folder_path, "*.json"))
         self.quotes = {} # key: create_time
         self.load_quotes(kos)
-    
+        
     def load_quotes(self, kos):
         for json_file in self.json_files:
             with open(json_file, 'r', encoding="utf-8") as f:
