@@ -85,7 +85,7 @@ if __name__ == "__main__":
     MAX_COVER_SIZE = 800 # Max resolution of cover images
 
     # Load koreader statistics dataset
-    kos = KoreaderStatisticsClient("F:\\books\\database\\statistics2.sqlite3")
+    kos = KoreaderStatisticsClient("F:\\books\\database\\statistics.sqlite3")
     kos.load_time()
     kos.destroy_sql_cursor()
     quo = QuotesLoader("F:\\books\\highlights", kos)
@@ -99,12 +99,12 @@ if __name__ == "__main__":
     for quote in quo.quotes.values():
         noq.add_quote(quote, nob, koreader_notion_mapping)
 
-    # nod = NotionDiaryClient(DIARY_DATABASE_ID, API_KEY)
-    # export_koreader_statistics_to_notion(kos, nod, nob, koreader_notion_mapping)
+    nod = NotionDiaryClient(DIARY_DATABASE_ID, API_KEY)
+    export_koreader_statistics_to_notion(kos, nod, nob, koreader_notion_mapping)
 
-    # notion_statistics_db = NotionStatisticsClient(STATISTICS_DATABASE_ID, API_KEY)
-    # notion_statistics_db.get_total_statistics()
-    # notion_statistics_db.update_total(nob)
+    notion_statistics_db = NotionStatisticsClient(STATISTICS_DATABASE_ID, API_KEY)
+    notion_statistics_db.get_total_statistics()
+    notion_statistics_db.update_total(nob)
 
     # # Load calibre database for book cover
     # calibre_root_path = "F:\Calibre"

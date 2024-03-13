@@ -19,12 +19,17 @@ class NotionQuoteClient:
     def quote_format(self, quote, max_length=30):
         sentences = re.split(r'[\.\!\?\,\。\？\！\，]', quote.text)
         index = 0
+        is_exceed = False
         for sentence in sentences:
             sentence = sentence.strip()
             index += len(sentence) + 1
             if index > max_length:
+                is_exceed = True
                 break
-        return quote.text[:index-1] + "... —— " + author_name_format(quote.author_name) + " 《" + quote.book_title + "》"
+        if is_exceed:
+            return quote.text[:index-1] + "... —— " + author_name_format(quote.author_name) + " 《" + quote.book_title + "》"
+        else:
+            return quote.text[:index-1] + " —— " + author_name_format(quote.author_name) + " 《" + quote.book_title + "》"
 
 
     def is_quote_exists(self, quote):
