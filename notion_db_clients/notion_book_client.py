@@ -79,13 +79,21 @@ class NotionBookClient:
     def update_book(self, page_id, book):
         try:
             read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
+
+            progress = round(book.read_pages / book.total_pages, 2)
+            # If progress > 90% and last read time over 48 hours, this book is treated as comleted
+            if progress > 0.90 and datetime.datetime.now() - book.start_read_time > datetime.timedelta(hours=48):
+                progress = 1.00
+                status = "Completed"
+
             book_page = self.notion.pages.update(
                 **{
                     "page_id": page_id,
                     "properties": {
                         "Read Seconds": {"number": book.read_time},
                         "Read Date": {"date": read_date},
-                        "Progress": {"number": round(book.read_pages / book.total_pages, 2)}
+                        "Progress": {"number": round(book.read_pages / book.total_pages, 2)},
+                        "Status": {"status": {"name": status}}
                     },
                 }
             )
@@ -110,7 +118,6 @@ class NotionBookClient:
             if progress > 0.90 and datetime.datetime.now() - book.start_read_time > datetime.timedelta(hours=48):
                 progress = 1.00
                 status = "Completed"
-
 
             book_page = self.notion.pages.create(
                 **{
