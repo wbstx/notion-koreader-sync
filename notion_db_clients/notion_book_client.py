@@ -80,6 +80,7 @@ class NotionBookClient:
         try:
             read_date = {"start": book.start_read_time.strftime("%Y-%m-%d"), "end": book.last_read_time.strftime("%Y-%m-%d")}
 
+            status = "Reading" # Defaultly reading
             progress = round(book.read_pages / book.total_pages, 2)
             # If progress > 90% and last read time over 48 hours, this book is treated as comleted
             if progress > 0.90 and datetime.datetime.now() - book.start_read_time > datetime.timedelta(hours=48):
@@ -93,7 +94,7 @@ class NotionBookClient:
                         "Read Seconds": {"number": book.read_time},
                         "Read Date": {"date": read_date},
                         "Progress": {"number": round(book.read_pages / book.total_pages, 2)},
-                        "Status": {"status": {"name": status}}
+                        "Status": {"status": {"name": status}},
                     },
                 }
             )

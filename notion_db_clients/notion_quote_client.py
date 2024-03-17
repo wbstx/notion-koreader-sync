@@ -17,7 +17,7 @@ class NotionQuoteClient:
         self.notion = notion_client.Client(auth=API_KEY)
     
     def quote_format(self, quote, max_length=30):
-        sentences = re.split(r'[\.\!\?\,\。\？\！\，]', quote.text)
+        sentences = re.split(r'[\.\!\?\,\。\？\！\，\、]', quote.text)
         index = 0
         is_exceed = False
         for sentence in sentences:
